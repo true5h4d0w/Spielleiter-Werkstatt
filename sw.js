@@ -3,7 +3,7 @@
    "cache-first" mit Netzwerk-Fallback und Laufzeit-Caching
    (z. B. für die Google-Schriftarten beim ersten Online-Start). */
 
-const CACHE = "slw-v4";
+const CACHE = "slw-v5";
 const CORE = [
   "./",
   "./index.html",
