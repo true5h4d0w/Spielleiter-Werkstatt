@@ -13,17 +13,17 @@
 <title>Spielleiter-Werkstatt</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Alegreya:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#14110d;
-    --bg-2:#1c1813;
-    --panel:#221d16;
-    --panel-2:#2a241b;
-    --line:#4a3e2c;
-    --ink:#faf3e3;
-    --ink-dim:#e8d4b0;
-    --ink-faint:#c0a878;
+    --bg:#181410;
+    --bg-2:#201b14;
+    --panel:#282118;
+    --panel-2:#312920;
+    --line:#574934;
+    --ink:#fdf9ef;
+    --ink-dim:#eedcb8;
+    --ink-faint:#cdb488;
     --gold:#c9a253;
     --gold-bright:#e3c179;
     --rust:#a8552f;
@@ -34,13 +34,14 @@
   *{box-sizing:border-box;margin:0;padding:0}
   html,body{height:100%}
   body{
-    font-family:'EB Garamond',Georgia,serif;
+    font-family:'Alegreya',Georgia,serif;
     background:
       radial-gradient(1200px 600px at 80% -10%, rgba(201,162,83,.06), transparent 60%),
       radial-gradient(900px 500px at -10% 110%, rgba(168,85,47,.07), transparent 55%),
       var(--bg);
     color:var(--ink);
     font-size:20px;
+    font-weight:500;
     line-height:1.65;
     -webkit-font-smoothing:antialiased;
   }
@@ -61,10 +62,10 @@
     font-family:'Cinzel',serif;font-weight:700;font-size:21px;color:var(--gold-bright);
     letter-spacing:.04em;line-height:1.15;
   }
-  .brand .sub{font-size:13px;color:var(--ink-faint);letter-spacing:.18em;text-transform:uppercase;margin-top:6px}
+  .brand .sub{font-size:14px;color:var(--ink-faint);letter-spacing:.18em;text-transform:uppercase;margin-top:6px}
 
   .camp-box{padding:18px 20px;border-bottom:1px solid var(--line)}
-  .label{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:7px;display:block}
+  .label{font-size:13.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:7px;display:block}
   select,input,textarea{
     width:100%;background:var(--panel);border:1px solid var(--line);color:var(--ink);
     font-family:inherit;font-size:17px;border-radius:8px;padding:10px 12px;outline:none;
@@ -81,14 +82,14 @@
     transition:background .14s,color .14s;
   }
   .nav-item .ico{width:22px;text-align:center;font-size:18px;opacity:.85}
-  .nav-item .count{margin-left:auto;font-size:13px;color:var(--ink-faint);
+  .nav-item .count{margin-left:auto;font-size:14px;color:var(--ink-faint);
     background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:1px 9px;min-width:26px;text-align:center}
   .nav-item:hover{background:var(--panel);color:var(--ink)}
   .nav-item.active{background:linear-gradient(90deg,rgba(201,162,83,.16),rgba(201,162,83,.04));color:var(--gold-bright);
     box-shadow:inset 3px 0 0 var(--gold)}
   .nav-item.active .count{border-color:var(--gold);color:var(--gold-bright)}
 
-  .side-foot{padding:14px 20px;border-top:1px solid var(--line);font-size:13px;color:var(--ink-faint)}
+  .side-foot{padding:14px 20px;border-top:1px solid var(--line);font-size:14.5px;color:var(--ink-faint)}
   .side-foot a{color:var(--ink-dim)}
 
   /* MAIN */
@@ -107,9 +108,9 @@
   }
   .btn:hover{filter:brightness(1.08)}
   .btn:active{transform:translateY(1px)}
-  .btn.ghost{background:transparent;color:var(--ink-dim);border-color:var(--line);font-family:'EB Garamond',serif;font-weight:500}
+  .btn.ghost{background:transparent;color:var(--ink-dim);border-color:var(--line);font-family:'Alegreya',serif;font-weight:500}
   .btn.ghost:hover{color:var(--ink);border-color:var(--ink-faint)}
-  .btn.danger{border-color:var(--red);background:transparent;color:var(--red);font-family:'EB Garamond',serif}
+  .btn.danger{border-color:var(--red);background:transparent;color:var(--red);font-family:'Alegreya',serif}
   .btn.danger:hover{background:rgba(182,72,63,.12)}
 
   .content{padding:28px 32px 80px;overflow-y:auto}
@@ -129,7 +130,7 @@
   .card .meta{font-size:16px;color:var(--ink-faint);font-style:italic;margin-bottom:10px}
   .card .excerpt{font-size:17px;color:var(--ink-dim);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
   .card .tags{margin-top:12px;display:flex;flex-wrap:wrap;gap:6px}
-  .tag{font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-dim);
+  .tag{font-size:13px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-dim);
     border:1px solid var(--line);border-radius:20px;padding:2px 10px;background:var(--bg-2)}
   .tag.gold{color:var(--gold-bright);border-color:rgba(201,162,83,.4)}
 
@@ -156,11 +157,11 @@
 
   /* DETAIL */
   .detail dl{display:grid;grid-template-columns:max-content 1fr;gap:6px 22px;align-items:baseline}
-  .detail dt{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-faint);padding-top:3px}
+  .detail dt{font-size:14px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-faint);padding-top:3px}
   .detail dd{color:var(--ink);white-space:pre-wrap;font-size:19px}
   .detail .blk{margin-bottom:18px;padding-bottom:16px;border-bottom:1px solid var(--line)}
   .detail .blk:last-child{border-bottom:none}
-  .detail .blk h4{font-family:'Cinzel',serif;color:var(--gold);font-size:14px;letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px}
+  .detail .blk h4{font-family:'Cinzel',serif;color:var(--gold);font-size:15px;letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px}
   .detail .blk p{white-space:pre-wrap;color:var(--ink-dim);font-size:19px;line-height:1.65}
   .links-blk h4{margin-bottom:4px}
   .link-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid rgba(58,48,36,.5)}
@@ -215,7 +216,7 @@
   .formula input{font-family:'Cinzel',serif;font-size:17px}
   .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
   .chip{font-size:14px;color:var(--ink-dim);background:var(--bg-2);border:1px solid var(--line);border-radius:20px;
-    padding:5px 13px;cursor:pointer;font-family:'EB Garamond',serif;white-space:nowrap}
+    padding:5px 13px;cursor:pointer;font-family:'Alegreya',serif;white-space:nowrap}
   .chip:hover{border-color:var(--gold);color:var(--gold-bright)}
   .chip.on{background:linear-gradient(180deg,var(--gold-bright),var(--gold));color:#1a160f;border-color:var(--gold);font-weight:600}
   .roll-log{display:flex;flex-direction:column;gap:8px}
@@ -245,8 +246,8 @@
   .f-main{flex:1;min-width:0}
   .f-name{font-family:'Cinzel',serif;font-size:18px;color:var(--ink);display:flex;align-items:center;gap:9px;flex-wrap:wrap}
   .f-name .pc{font-size:11px;letter-spacing:.07em;background:rgba(111,139,78,.18);color:#9bbd6e;
-    border:1px solid rgba(111,139,78,.4);border-radius:4px;padding:1px 7px;font-family:'EB Garamond',serif}
-  .f-name .ac{font-size:14px;color:var(--ink-faint);font-family:'EB Garamond',serif}
+    border:1px solid rgba(111,139,78,.4);border-radius:4px;padding:1px 7px;font-family:'Alegreya',serif}
+  .f-name .ac{font-size:14px;color:var(--ink-faint);font-family:'Alegreya',serif}
   .f-conds{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
   .cond{font-size:12.5px;background:rgba(168,85,47,.16);color:#d79468;border:1px solid rgba(168,85,47,.4);
     border-radius:5px;padding:1px 9px;cursor:pointer;user-select:none}
@@ -257,7 +258,7 @@
   .cond-grid{display:flex;flex-wrap:wrap;gap:8px}
   .f-hp{display:flex;align-items:center;gap:7px;flex-shrink:0}
   .hp-in{width:50px;text-align:center;padding:6px 4px;font-size:15px}
-  .hp-act{border-radius:7px;border:1px solid var(--line);background:var(--bg-2);font-family:'EB Garamond',serif;
+  .hp-act{border-radius:7px;border:1px solid var(--line);background:var(--bg-2);font-family:'Alegreya',serif;
     font-size:13px;padding:6px 9px;cursor:pointer;color:var(--ink-dim)}
   .hp-act.dmg:hover{border-color:var(--red);color:#e08980;background:rgba(182,72,63,.12)}
   .hp-act.heal:hover{border-color:var(--green);color:#a6c87a;background:rgba(111,139,78,.12)}
