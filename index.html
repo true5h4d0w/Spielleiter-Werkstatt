@@ -62,7 +62,7 @@
     font-family:'Cinzel',serif;font-weight:700;font-size:21px;color:var(--gold-bright);
     letter-spacing:.04em;line-height:1.15;
   }
-  .brand .sub{font-size:14px;color:var(--ink-faint);letter-spacing:.18em;text-transform:uppercase;margin-top:6px}
+  .brand .sub{font-size:13px;color:var(--ink-faint);letter-spacing:.18em;text-transform:uppercase;margin-top:6px}
 
   .camp-box{padding:18px 20px;border-bottom:1px solid var(--line)}
   .label{font-size:13.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:7px;display:block}
@@ -82,8 +82,9 @@
     transition:background .14s,color .14s;
   }
   .nav-item .ico{width:22px;text-align:center;font-size:18px;opacity:.85}
-  .nav-item .count{margin-left:auto;font-size:14px;color:var(--ink-faint);
+  .nav-item .count{margin-left:auto;font-size:13px;color:var(--ink-faint);
     background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:1px 9px;min-width:26px;text-align:center}
+  .nav-item:hover{background:var(--panel);color:var(--ink)}
   .nav-item:hover{background:var(--panel);color:var(--ink)}
   .nav-item.active{background:linear-gradient(90deg,rgba(201,162,83,.16),rgba(201,162,83,.04));color:var(--gold-bright);
     box-shadow:inset 3px 0 0 var(--gold)}
@@ -130,7 +131,7 @@
   .card .meta{font-size:16px;color:var(--ink-faint);font-style:italic;margin-bottom:10px}
   .card .excerpt{font-size:17px;color:var(--ink-dim);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
   .card .tags{margin-top:12px;display:flex;flex-wrap:wrap;gap:6px}
-  .tag{font-size:13px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-dim);
+  .tag{font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-dim);
     border:1px solid var(--line);border-radius:20px;padding:2px 10px;background:var(--bg-2)}
   .tag.gold{color:var(--gold-bright);border-color:rgba(201,162,83,.4)}
 
@@ -176,6 +177,19 @@
   .link-x:hover{color:var(--red)}
 
   .secret{background:rgba(168,85,47,.1);border-left:2px solid var(--rust);padding:10px 14px;border-radius:0 8px 8px 0}
+  .links-blk{margin-bottom:18px;padding-bottom:16px;border-bottom:1px solid var(--line)}
+  .links-blk:last-child{border-bottom:none}
+  .links-blk h4{font-family:'Cinzel',serif;color:var(--gold);font-size:14px;letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px}
+  .link-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid rgba(58,48,36,.5)}
+  .link-row:last-of-type{border-bottom:none}
+  .link-go{display:flex;align-items:center;gap:11px;flex:1;cursor:pointer;min-width:0}
+  .link-go:hover b{color:var(--gold-bright)}
+  .link-ico{width:30px;height:30px;display:flex;align-items:center;justify-content:center;border:1px solid var(--line);
+    border-radius:8px;color:var(--gold);flex-shrink:0;font-size:15px;background:var(--bg-2)}
+  .link-go b{color:var(--ink);font-family:'Cinzel',serif;font-size:15px;font-weight:600}
+  .link-label{color:var(--ink-faint);font-size:13px;font-style:italic;margin-left:8px}
+  .link-x{background:none;border:none;color:var(--ink-faint);font-size:19px;cursor:pointer;line-height:1;flex-shrink:0}
+  .link-x:hover{color:var(--red)}
   .stat-row{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin:6px 0 4px}
   .stat{text-align:center;background:var(--bg-2);border:1px solid var(--line);border-radius:8px;padding:8px 4px}
   .stat .n{font-size:12px;color:var(--ink-faint);letter-spacing:.1em}
@@ -768,8 +782,11 @@ const App = {
     });
     if(firstReq){ toast("Bitte „"+firstReq+"“ ausfüllen"); return; }
     const arr=this.rows(this.section);
-    if(this.editId){ const i=arr.findIndex(x=>x.id===this.editId); rec.id=this.editId; arr[i]=rec; }
-    else { rec.id="r"+Date.now()+Math.floor(Math.random()*999); arr.push(rec); }
+    if(this.editId){
+      const i=arr.findIndex(x=>x.id===this.editId);
+      const existing=arr[i]; if(existing&&existing.links) rec.links=existing.links;
+      rec.id=this.editId; arr[i]=rec;
+    } else { rec.id="r"+Date.now()+Math.floor(Math.random()*999); arr.push(rec); }
     this.commit(); this.close(); this.renderNav(); this.render(); toast("Gespeichert");
   },
 
@@ -788,6 +805,23 @@ const App = {
       const cls=f.secret?'secret':'';
       body+=`<div class="blk"><h4>${f.l}</h4><p class="${cls}">${esc(String(v))}</p></div>`;
     });
+    // Links-Block
+    const links=r.links||[];
+    const linksHtml = links.length
+      ? links.map(lk=>{
+          const te=ENTITIES[lk.sec]; if(!te)return "";
+          const tr=this.rows(lk.sec).find(x=>x.id===lk.id);
+          const tname=tr?esc(tr[te.title]||"?"):"(gelöscht)";
+          return `<div class="link-row">
+            <div class="link-go" onclick="App.goToLinked('${lk.sec}','${lk.id}')">
+              <span class="link-ico">${te.icon}</span>
+              <span><b>${tname}</b><span class="link-label">${esc(lk.label||"")}</span></span>
+            </div>
+            <button class="link-x" title="Verknüpfung entfernen" onclick="App.removeLink('${r.id}','${lk.id}')">&#x00D7;</button>
+          </div>`;
+        }).join("")
+      : `<p class="muted" style="font-size:14px">Noch keine Verknüpfungen.</p>`;
+    body+=`<div class="links-blk"><h4>&#128279; Verknüpfungen</h4>${linksHtml}</div>`;
     return body||"<p style='color:var(--ink-faint)'>Keine Details erfasst.</p>";
   },
 
@@ -796,12 +830,13 @@ const App = {
     document.getElementById("modal").innerHTML=`
       <div class="modal-head">
         <h3>${esc(r[e.title]||"")}</h3>
-        <button class="x" onclick="App.close()">×</button>
+        <button class="x" onclick="App.close()">&#x00D7;</button>
       </div>
       <div class="modal-body detail">${this.detailBody(e,r)}</div>
       <div class="modal-foot">
         <button class="btn danger" onclick="App.del('${id}')">Löschen</button>
         <div style="flex:1"></div>
+        <button class="btn ghost" onclick="App.openLinkDialog('${id}')">+ Verknüpfung</button>
         <button class="btn" onclick="App.openForm('${id}')">Bearbeiten</button>
       </div>`;
     open();
@@ -811,8 +846,84 @@ const App = {
     if(!confirm("Diesen Eintrag wirklich löschen?"))return;
     const arr=this.rows(this.section); const i=arr.findIndex(x=>x.id===id);
     if(i>-1)arr.splice(i,1);
+    // Gegenseiten-Links entfernen
+    for(const k in ENTITIES){
+      this.rows(k).forEach(r=>{ if(r.links) r.links=r.links.filter(lk=>lk.id!==id); });
+    }
     this.commit(); this.close(); this.renderNav(); this.render(); toast("Gelöscht");
   },
+  /* --- Verknüpfungen --- */
+  openLinkDialog(fromId){
+    const fromSec=this.section;
+    const fromE=ENTITIES[fromSec];
+    const fromR=this.rows(fromSec).find(x=>x.id===fromId); if(!fromR)return;
+    // Alle Einträge aller Entitäten außer sich selbst
+    let opts="";
+    for(const k in ENTITIES){
+      const e=ENTITIES[k];
+      const rows=this.rows(k).filter(r=>!(k===fromSec&&r.id===fromId));
+      if(!rows.length)continue;
+      opts+=`<optgroup label="${e.icon} ${e.label}">`;
+      rows.forEach(r=>{ opts+=`<option value="${k}::${r.id}">${esc(r[e.title]||"?")}</option>`; });
+      opts+=`</optgroup>`;
+    }
+    document.getElementById("modal").innerHTML=`
+      <div class="modal-head"><h3>Verknüpfung hinzufügen</h3><button class="x" onclick="App.openDetail('${fromId}')">&#x00D7;</button></div>
+      <div class="modal-body">
+        <div class="field"><label class="label">Ziel-Eintrag</label>
+          <select id="lk_target">${opts}</select></div>
+        <div class="field row2">
+          <div><label class="label">Bezeichnung (von hier aus)</label>
+            <input id="lk_label_a" placeholder="z. B. wohnt in, begleitet …"></div>
+          <div><label class="label">Bezeichnung (von dort aus)</label>
+            <input id="lk_label_b" placeholder="z. B. beherbergt, wird begleitet …"></div>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn ghost" onclick="App.openDetail('${fromId}')">Abbrechen</button>
+        <button class="btn" onclick="App.saveLink('${fromId}')">Verknüpfen</button>
+      </div>`;
+    open();
+  },
+
+  saveLink(fromId){
+    const target=val("lk_target"); if(!target){toast("Bitte ein Ziel wählen");return;}
+    const [toSec,toId]=target.split("::");
+    const labelA=val("lk_label_a");
+    const labelB=val("lk_label_b");
+    const fromSec=this.section;
+    const fromR=this.rows(fromSec).find(x=>x.id===fromId);
+    const toR=this.rows(toSec).find(x=>x.id===toId);
+    if(!fromR||!toR){toast("Eintrag nicht gefunden");return;}
+    if(!fromR.links)fromR.links=[];
+    if(!toR.links)toR.links=[];
+    // Doppelte verhindern
+    if(fromR.links.some(lk=>lk.id===toId)){toast("Bereits verknüpft");return;}
+    fromR.links.push({sec:toSec,id:toId,label:labelA});
+    toR.links.push({sec:fromSec,id:fromId,label:labelB});
+    this.commit(); this.openDetail(fromId); toast("Verknüpft");
+  },
+
+  removeLink(fromId,toId){
+    if(!confirm("Verknüpfung wirklich entfernen?"))return;
+    const fromSec=this.section;
+    const fromR=this.rows(fromSec).find(x=>x.id===fromId);
+    if(fromR&&fromR.links) fromR.links=fromR.links.filter(lk=>lk.id!==toId);
+    // Gegenseite ebenfalls entfernen
+    for(const k in ENTITIES){
+      const toR=this.rows(k).find(x=>x.id===toId);
+      if(toR&&toR.links) toR.links=toR.links.filter(lk=>lk.id!==fromId);
+    }
+    this.commit(); this.openDetail(fromId); toast("Verknüpfung entfernt");
+  },
+
+  goToLinked(sec,id){
+    this.section=sec; this.close();
+    this.renderNav(); this.render();
+    // Kurze Verzögerung, damit render() abgeschlossen ist
+    setTimeout(()=>this.openDetail(id),60);
+  },
+
   close(){ document.getElementById("overlay").classList.remove("open"); this.editId=null; },
 
   /* --- Initiative-Tracker --- */
