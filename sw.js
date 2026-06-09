@@ -6,7 +6,7 @@
 const CACHE = "slw-v5";
 const CORE = [
   "./",
-  "./index.html",
+  "./spielleiter-werkstatt.html",
   "./manifest.webmanifest",
   "./icon-192.png",
   "./icon-512.png"
@@ -41,7 +41,7 @@ self.addEventListener("fetch", e => {
           caches.open(CACHE).then(c => c.put(e.request, copy)).catch(() => {});
         }
         return res;
-      }).catch(() => caches.match("./index.html"));
+      }).catch(() => caches.match("./spielleiter-werkstatt.html"));
     })
   );
 });
