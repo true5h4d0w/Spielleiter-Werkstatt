@@ -1725,27 +1725,84 @@ const App = {
       resultArea.innerHTML="";
 
       try{
-        const prompt=`Du analysierst eine D&D / Pen-&-Paper-Rollenspieltafel-Karte.
-Lies alle sichtbaren Daten von der Karte und gib sie als JSON-Objekt aus.
-Antworte NUR mit dem JSON, ohne Markdown-Code-Blöcke, ohne Erklärungen.
+        const prompt=`Du analysierst eine Karte aus einem Pen-&-Paper-Rollenspiel (D&D 5E-kompatibel).
+Antworte NUR mit einem JSON-Objekt. Kein Markdown, keine Erklärungen, keine Codeblöcke.
 
-Erkenne den Kartentyp anhand des Inhalts und gib GENAU eines dieser Schlüsselwörter im Feld "typ" zurück:
-- "nsc" für NSC / Charaktere / Personen
-- "monster" für Monster / Kreaturen / Bestien
-- "gegenstand" für Gegenstände, Waffen, Rüstungen, Tränke, magische Items
-- "zauber" für Zaubersprüche / Zauberkarten
+━━━ SCHRITT 1: KARTENTYP ERKENNEN ━━━
+Setze das Feld "typ" auf genau einen dieser Werte:
+- "nsc"        → Personen, Charaktere, Bewohner, Händler, Wächter, Anführer, usw.
+- "monster"    → Kreaturen, Bestien, Ungeheuer, Feinde mit Kampfwerten (RK, TP, Aktionen)
+- "gegenstand" → Waffen, Rüstungen, Tränke, Ringe, Stäbe, magische Items, Ausrüstung
+- "zauber"     → Zaubersprüche mit Wirkungszeit, Reichweite, Komponenten
 
-Befülle dann die passenden Felder. Verwende immer DEUTSCHE Inhalte.
+━━━ SCHRITT 2: RASSE/SPEZIES + BERUF TRENNEN ━━━
+Steht auf der Karte eine zusammengesetzte Bezeichnung wie "Halblingsbankier",
+"Elfische Händlerin", "Zwergenkrieger", "Menschlicher Wächter" oder ähnliches:
+→ Extrahiere die RASSE in "spezies" (z.B. "Halbling", "Elf", "Zwerg", "Mensch")
+→ Extrahiere den BERUF/ROLLE in "rolle" (z.B. "Bankier", "Händlerin", "Krieger", "Wächter")
+Bekannte Rassen: Mensch, Elf, Zwerg, Halbling, Gnom, Halbelf, Halbork, Drachenblütiger, Tiefling, Goliath, Ork
+Ist keine Rasse erkennbar, setze "spezies" auf "Mensch" als Standard.
 
-Für nsc: { typ, name, rolle, spezies, beschreibung, aussehen, persoenlichkeit, geheimnisse, notizen }
-Beim Feld "aussehen": Beschreibe das Aussehen der abgebildeten Person basierend auf der Illustration (Haarfarbe, Augenfarbe, Kleidung, Rüstung, besondere Merkmale). Falls keine Illustration vorhanden, weglassen.
-Für monster: { typ, name, groesse, monstertyp, gesinnung, hg, rk, hp, speed, faehigkeiten, aktionen, beschreibung }
-Für gegenstand: { typ, name, gegenstandtyp, seltenheit, magisch, abstimmung, beschreibung }
-Für zauber: { typ, name, grad, schule, zeit, reichweite, komponenten, dauer, beschreibung, hoeher }
+━━━ SCHRITT 3: FELDER BEFÜLLEN ━━━
 
-Felder die auf der Karte nicht erkennbar sind: weglassen oder leer lassen.
-Gerüchte / Fluff-Text bei NSC: in "notizen" packen.
-Persönlichkeitsmerkmale + Eigenschaften bei NSC: in "persoenlichkeit".`;
+Für "nsc":
+{
+  "typ": "nsc",
+  "name": "Nur der Eigenname der Person, KEIN Titel oder Beruf",
+  "rolle": "Beruf, Titel oder Funktion (z.B. Wachanführerin, Bankier, Schmied)",
+  "spezies": "Nur die Rasse (z.B. Mensch, Halbling) — NICHT der Beruf",
+  "gesinnung": "Falls erkennbar, sonst weglassen",
+  "aussehen": "NUR physisches Äußeres aus der Illustration: Haarfarbe/-schnitt, Augenfarbe, Hautton, Körperbau, Kleidung, Rüstungstyp und -farbe, Waffen, Accessoires, Narben, Besonderheiten. KEINE Charaktereigenschaften.",
+  "persoenlichkeit": "NUR Charaktereigenschaften, Verhaltensweisen, Eigenheiten, Werte, Manieren — z.B. 'streng und gerecht', 'bekannt für Gutherzigkeit'. KEIN Aussehen, KEINE Gerüchte.",
+  "ziele": "Motivation, Ziele oder Aufgabe der Person, falls erkennbar",
+  "geheimnisse": "Interna oder versteckte Informationen, falls vorhanden",
+  "notizen": "Gerüchte, Fluff-Text, Hinweise für den Spielleiter — alles was nicht in die anderen Felder passt"
+}
+
+Für "monster":
+{
+  "typ": "monster",
+  "name": "Name des Monsters",
+  "groesse": "Winzig / Klein / Mittel / Groß / Riesig / Gigantisch",
+  "monstertyp": "Humanoid / Bestie / Untoter / Konstrukt / Drache / Elementar / Monstrosität / usw.",
+  "gesinnung": "z.B. chaotisch böse, neutral",
+  "hg": "Herausforderungsgrad als Zahl oder Bruch, z.B. 1/4 oder 3",
+  "rk": "Rüstungsklasse als Zahl",
+  "hp": "Trefferpunkte als Zahl (Mittelwert falls Würfelformel angegeben)",
+  "speed": "Bewegungsrate z.B. 9 m",
+  "faehigkeiten": "Passive Eigenschaften, Immunen, Resistenzen, Sinne",
+  "aktionen": "Angriffe und Aktionen mit Schadenswerten",
+  "beschreibung": "Erscheinungsbild, Herkunft, Verhalten, Taktik"
+}
+
+Für "gegenstand":
+{
+  "typ": "gegenstand",
+  "name": "Name des Gegenstands",
+  "gegenstandtyp": "Waffe / Rüstung / Trank / Ring / Stab / Zauberstab / Wundersam / Schriftrolle / Werkzeug / Sonstiges",
+  "seltenheit": "Gewöhnlich / Ungewöhnlich / Selten / Sehr selten / Legendär / Artefakt",
+  "magisch": "ja / nein",
+  "abstimmung": "ja / nein",
+  "wert": "Geldwert als Zahl in Goldmünzen, falls angegeben",
+  "beschreibung": "Aussehen des Gegenstands, alle Effekte, Wirkungen, Boni, Regeln"
+}
+
+Für "zauber":
+{
+  "typ": "zauber",
+  "name": "Name des Zaubers",
+  "grad": "Grad als Zahl (0 = Zaubertrick)",
+  "schule": "Bannmagie / Beschwörung / Erkenntnismagie / Hervorrufung / Illusion / Nekromantie / Verwandlung / Verzauberung",
+  "zeit": "Wirkungszeit z.B. 1 Aktion, 1 Bonusaktion, 1 Reaktion, 1 Minute",
+  "reichweite": "z.B. Selbst, Berührung, 9 m, 36 m",
+  "komponenten": "V und/oder G und/oder M (mit Materialkomponente in Klammern)",
+  "dauer": "z.B. Sofort, 1 Runde, Konzentration bis 1 Minute, 8 Stunden",
+  "beschreibung": "Vollständiger Effekttext — was der Zauber bewirkt, Rettungswürfe, Schaden",
+  "hoeher": "Verbesserung auf höheren Graden, falls vorhanden"
+}
+
+Felder die auf der Karte nicht erkennbar sind: weglassen oder als leeren String "".
+Antworte NUR mit dem JSON-Objekt.`;
 
         const apiKey=localStorage.getItem("slw_apikey")||"";
         if(!apiKey.startsWith("sk-ant-")){
