@@ -85,7 +85,6 @@
   .nav-item .count{margin-left:auto;font-size:13px;color:var(--ink-faint);
     background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:1px 9px;min-width:26px;text-align:center}
   .nav-item:hover{background:var(--panel);color:var(--ink)}
-  .nav-item:hover{background:var(--panel);color:var(--ink)}
   .nav-item.active{background:linear-gradient(90deg,rgba(201,162,83,.16),rgba(201,162,83,.04));color:var(--gold-bright);
     box-shadow:inset 3px 0 0 var(--gold)}
   .nav-item.active .count{border-color:var(--gold);color:var(--gold-bright)}
@@ -180,21 +179,35 @@
   .links-blk{margin-bottom:18px;padding-bottom:16px;border-bottom:1px solid var(--line)}
   .links-blk:last-child{border-bottom:none}
   .links-blk h4{font-family:'Cinzel',serif;color:var(--gold);font-size:14px;letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px}
-  .link-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid rgba(58,48,36,.5)}
-  .link-row:last-of-type{border-bottom:none}
-  .link-go{display:flex;align-items:center;gap:11px;flex:1;cursor:pointer;min-width:0}
-  .link-go:hover b{color:var(--gold-bright)}
-  .link-ico{width:30px;height:30px;display:flex;align-items:center;justify-content:center;border:1px solid var(--line);
-    border-radius:8px;color:var(--gold);flex-shrink:0;font-size:15px;background:var(--bg-2)}
-  .link-go b{color:var(--ink);font-family:'Cinzel',serif;font-size:15px;font-weight:600}
-  .link-label{color:var(--ink-faint);font-size:13px;font-style:italic;margin-left:8px}
-  .link-x{background:none;border:none;color:var(--ink-faint);font-size:19px;cursor:pointer;line-height:1;flex-shrink:0}
-  .link-x:hover{color:var(--red)}
   .stat-row{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin:6px 0 4px}
   .stat{text-align:center;background:var(--bg-2);border:1px solid var(--line);border-radius:8px;padding:8px 4px}
   .stat .n{font-size:12px;color:var(--ink-faint);letter-spacing:.1em}
   .stat .v{font-family:'Cinzel',serif;font-size:20px;color:var(--gold-bright)}
   .stat .m{font-size:13px;color:var(--ink-dim)}
+
+  /* ENTITYLINK-WIDGET */
+  .el-wrap{position:relative}
+  .el-input{cursor:pointer}
+  .el-input.has-link{border-color:var(--gold);padding-right:34px}
+  .el-input.has-link::placeholder{color:var(--gold)}
+  .el-clear{position:absolute;right:10px;top:50%;transform:translateY(-50%);
+    background:none;border:none;color:var(--ink-faint);font-size:18px;cursor:pointer;line-height:1;padding:2px}
+  .el-clear:hover{color:var(--red)}
+  .el-dropdown{position:absolute;top:100%;left:0;right:0;z-index:60;margin-top:4px;
+    background:var(--panel-2);border:1px solid var(--gold);border-radius:10px;
+    box-shadow:0 8px 28px rgba(0,0,0,.55);max-height:260px;overflow-y:auto;display:none}
+  .el-dropdown.open{display:block}
+  .el-search{padding:10px 12px;border-bottom:1px solid var(--line)}
+  .el-search input{border-radius:6px;font-size:15px;padding:7px 10px}
+  .el-list{}
+  .el-opt{display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;
+    font-size:17px;color:var(--ink-dim);transition:background .12s}
+  .el-opt:hover,.el-opt.focused{background:rgba(201,162,83,.1);color:var(--ink)}
+  .el-opt .el-opt-icon{font-size:14px;opacity:.7;flex-shrink:0}
+  .el-opt .el-opt-sub{font-size:13px;color:var(--ink-faint);font-style:italic;margin-left:auto}
+  .el-opt.create{color:var(--gold);border-top:1px solid var(--line)}
+  .el-opt.create:hover{background:rgba(201,162,83,.15)}
+  .el-empty{padding:12px 14px;font-size:15px;color:var(--ink-faint);font-style:italic}
 
   /* WÜRFELROLLER */
   .dice-hero{background:linear-gradient(180deg,var(--panel-2),var(--panel));border:1px solid var(--line);
@@ -364,10 +377,7 @@
 
 <script>
 /* ============================================================
-   DATENMODELL  —  hier definierst du alle "Datenbanken".
-   Jede Entität = eine Tabelle. Felder steuern Formular,
-   Liste und Detailansicht automatisch. Neue Felder oder
-   neue Entitäten hinzufügen = nur dieses Objekt erweitern.
+   DATENMODELL
    ============================================================ */
 const SPECIES = ["Mensch","Elf","Zwerg","Halbling","Gnom","Halbelf","Halbork","Drachenblütiger","Tiefling","Goliath","Ork","Andere"];
 const ALIGN = ["rechtschaffen gut","neutral gut","chaotisch gut","rechtschaffen neutral","neutral","chaotisch neutral","rechtschaffen böse","neutral böse","chaotisch böse","ohne"];
@@ -422,7 +432,9 @@ const ENTITIES = {
     fields:[
       {k:"name",l:"Name",req:true},
       {k:"typ",l:"Typ",type:"select",opts:["Region","Stadt","Dorf","Gebäude","Verlies","Wildnis","Sonstiges"],row:"a"},
-      {k:"region",l:"Übergeordnete Region",row:"a"},
+      // entitylink: type, linkSec=Ziel-Sektion, linkLabel=Beschriftung von hier, linkLabelBack=Beschriftung von dort
+      {k:"region",l:"Übergeordnete Region",type:"entitylink",linkSec:"orte",
+       linkLabel:"liegt in",linkLabelBack:"enthält",row:"a"},
       {k:"einwohner",l:"Einwohnerzahl",type:"number",row:"b"},
       {k:"entdeckt",l:"Von Gruppe entdeckt?",type:"select",opts:["nein","ja"],row:"b"},
       {k:"beschreibung",l:"Beschreibung",type:"area"},
@@ -507,11 +519,7 @@ const STATS=[["staerke","STÄ"],["geschick","GES"],["konst","KON"],["intel","INT
 const CONDITIONS=["Betäubt","Bewusstlos","Bezaubert","Blind","Erschöpft","Festgesetzt","Gelähmt","Gepackt","Handlungsunfähig","Liegend","Taub","Unsichtbar","Verängstigt","Vergiftet","Versteinert"];
 
 /* ============================================================
-   SRD-BIBLIOTHEK  —  kuratierter Startbestand aus dem
-   System Reference Document 5.1 (© Wizards of the Coast,
-   lizenziert unter CC-BY-4.0). Generische Spielinhalte,
-   keine geschützten Marken oder Settings. Beliebig
-   erweiterbar: einfach diesem Objekt Einträge hinzufügen.
+   SRD-BIBLIOTHEK
    ============================================================ */
 const SRD = {
   monster:[
@@ -586,8 +594,7 @@ const SRD = {
 
 
 /* ============================================================
-   DATENSPEICHER  —  localStorage. Pro Kampagne ein Datensatz.
-   Leicht später auf IndexedDB umstellbar (gleiche Methoden).
+   DATENSPEICHER
    ============================================================ */
 const DB = {
   KEY:"slw_data_v1",
@@ -608,7 +615,6 @@ const App = {
 
   init(){
     this.state = DB.load() || DB.seed();
-    // Sicherstellen, dass jede Kampagne alle Tabellen hat (falls neue dazukommen)
     for(const id in this.state.camps){
       const d=this.state.camps[id].data;
       for(const k in ENTITIES) if(!d[k]) d[k]=[];
@@ -725,6 +731,244 @@ const App = {
     </div>`;
   },
 
+  /* ============================================================
+     ENTITYLINK-WIDGET
+     Rendert ein intelligentes Dropdown für "übergeordnete Region"
+     und ähnliche Felder. Wählt man einen Eintrag aus, wird
+     automatisch eine bidirektionale Verknüpfung angelegt.
+     ============================================================ */
+
+  // Gibt alle Kandidaten zurück (gleiche Sektion, nicht der aktuelle Eintrag selbst)
+  elCandidates(linkSec, excludeId){
+    const e=ENTITIES[linkSec];
+    if(!e) return [];
+    return this.rows(linkSec).filter(r=> r.id !== excludeId);
+  },
+
+  // HTML für das EntityLink-Widget erzeugen
+  elHtml(f, currentRecord){
+    // currentRecord kann leer sein (neuer Eintrag)
+    const existingLinkedId = currentRecord && currentRecord[f.k+"_id"] ? currentRecord[f.k+"_id"] : "";
+    const existingLinkedName = currentRecord && currentRecord[f.k] ? currentRecord[f.k] : "";
+    const displayVal = existingLinkedId ? existingLinkedName : "";
+    const clearBtn = displayVal
+      ? `<button type="button" class="el-clear" title="Verknüpfung aufheben" onclick="App.elClear('${f.k}')">×</button>`
+      : "";
+    return `
+      <div class="el-wrap" id="elwrap_${f.k}">
+        <input id="f_${f.k}" class="el-input${displayVal?' has-link':''}" type="text"
+          placeholder="Tippen oder auswählen …"
+          value="${esc(displayVal)}"
+          autocomplete="off"
+          oninput="App.elOnInput(this,'${f.k}','${f.linkSec}','${currentRecord&&currentRecord.id||''}')"
+          onfocus="App.elOpen('${f.k}','${f.linkSec}','${currentRecord&&currentRecord.id||''}')"
+          onkeydown="App.elKeydown(event,'${f.k}')">
+        <input type="hidden" id="f_${f.k}_id" value="${esc(existingLinkedId)}">
+        ${clearBtn}
+        <div class="el-dropdown" id="eldrop_${f.k}">
+          <div class="el-search"><input id="elsearch_${f.k}" placeholder="Suchen …"
+            oninput="App.elFilter('${f.k}','${f.linkSec}','${currentRecord&&currentRecord.id||''}')"
+            onkeydown="App.elKeydown(event,'${f.k}')"></div>
+          <div class="el-list" id="ellist_${f.k}"></div>
+        </div>
+      </div>`;
+  },
+
+  elOpen(fk, linkSec, excludeId){
+    const drop=document.getElementById("eldrop_"+fk);
+    if(!drop) return;
+    this.elFill(fk, linkSec, excludeId, "");
+    drop.classList.add("open");
+    // Suchfeld fokussieren
+    setTimeout(()=>{ const s=document.getElementById("elsearch_"+fk); if(s) s.focus(); },40);
+    // Schließen wenn woanders geklickt
+    setTimeout(()=>{
+      const close=(e)=>{
+        if(!drop.contains(e.target) && e.target.id!=="f_"+fk){
+          drop.classList.remove("open");
+          document.removeEventListener("mousedown",close,true);
+        }
+      };
+      document.addEventListener("mousedown",close,true);
+    },10);
+  },
+
+  elOnInput(input, fk, linkSec, excludeId){
+    // Wenn Nutzer tippt, ID zurücksetzen (Freitext-Guard)
+    document.getElementById("f_"+fk+"_id").value="";
+    input.classList.remove("has-link");
+    const drop=document.getElementById("eldrop_"+fk);
+    this.elFill(fk, linkSec, excludeId, input.value);
+    drop.classList.add("open");
+  },
+
+  elFilter(fk, linkSec, excludeId){
+    const q=document.getElementById("elsearch_"+fk);
+    this.elFill(fk, linkSec, excludeId, q?q.value:"");
+  },
+
+  elFill(fk, linkSec, excludeId, q){
+    const list=document.getElementById("ellist_"+fk); if(!list) return;
+    const e=ENTITIES[linkSec]; if(!e) return;
+    const lq=q.toLowerCase();
+    const candidates=this.elCandidates(linkSec, excludeId)
+      .filter(r=> !q || (r[e.title]||"").toLowerCase().includes(lq));
+
+    let html="";
+    candidates.forEach(r=>{
+      const name=r[e.title]||"?";
+      const sub=e.subtitle?e.subtitle(r):"";
+      html+=`<div class="el-opt" data-id="${r.id}" data-name="${esc(name)}"
+        onclick="App.elSelect('${fk}','${r.id}','${esc(name).replace(/'/g,"&#39;")}')">
+        <span class="el-opt-icon">${e.icon}</span>
+        <span>${esc(name)}</span>
+        ${sub?`<span class="el-opt-sub">${esc(sub)}</span>`:""}
+      </div>`;
+    });
+
+    // "+ Neu anlegen"-Option
+    const newName = (document.getElementById("f_"+fk)||{}).value || q;
+    const createLabel = newName ? `Neu anlegen \u201e${esc(newName)}\u201c \u2026` : `Neu anlegen \u2026`;
+    const safeNew = esc(newName).replace(/'/g,"&#39;");
+    html+=`<div class="el-opt create"
+      onclick="App.elCreateNew('${fk}','${linkSec}','${safeNew}')">
+      <span class="el-opt-icon">&#xff0b;</span>
+      <span>${createLabel}</span>
+    </div>`;
+
+    list.innerHTML = html || `<div class="el-empty">Keine Einträge vorhanden.</div>`;
+  },
+
+  elSelect(fk, id, name){
+    const input=document.getElementById("f_"+fk);
+    const hidden=document.getElementById("f_"+fk+"_id");
+    const drop=document.getElementById("eldrop_"+fk);
+    const wrap=document.getElementById("elwrap_"+fk);
+    if(input) { input.value=name; input.classList.add("has-link"); }
+    if(hidden) hidden.value=id;
+    if(drop) drop.classList.remove("open");
+    // Clear-Button einblenden
+    const existing=wrap&&wrap.querySelector(".el-clear");
+    if(wrap && !existing){
+      const btn=document.createElement("button");
+      btn.type="button"; btn.className="el-clear"; btn.title="Verknüpfung aufheben";
+      btn.textContent="×";
+      btn.onclick=()=>App.elClear(fk);
+      wrap.appendChild(btn);
+    }
+  },
+
+  elClear(fk){
+    const input=document.getElementById("f_"+fk);
+    const hidden=document.getElementById("f_"+fk+"_id");
+    const wrap=document.getElementById("elwrap_"+fk);
+    if(input){ input.value=""; input.classList.remove("has-link"); }
+    if(hidden) hidden.value="";
+    const btn=wrap&&wrap.querySelector(".el-clear");
+    if(btn) btn.remove();
+  },
+
+  elKeydown(e, fk){
+    if(e.key==="Escape"){
+      const drop=document.getElementById("eldrop_"+fk);
+      if(drop) drop.classList.remove("open");
+    }
+  },
+
+  // Neuen Ort direkt aus dem Widget heraus anlegen
+  elCreateNew(fk, linkSec, prefillName){
+    const e=ENTITIES[linkSec]; if(!e) return;
+    // Merke welches Feld gerade bearbeitet wird
+    this._elPendingFk=fk;
+    this._elPendingLinkSec=linkSec;
+    // Formular für linkSec öffnen (ohne Sektionswechsel)
+    const prevSection=this.section;
+    this.section=linkSec;
+    this.editId=null;
+    const m=document.getElementById("modal");
+    let body=""; let rowBuf=[]; let lastRow=null;
+    const flush=()=>{ if(rowBuf.length){ const cls=rowBuf.length>2?"row3":"row2";
+      body+=`<div class="field ${cls}">${rowBuf.join("")}</div>`; rowBuf=[]; } };
+    e.fields.forEach(f=>{
+      // entitylink-Felder im Schnell-Anlegen-Formular als einfaches Textfeld rendern
+      const fval = (f.k===e.title) ? prefillName : "";
+      let inner="";
+      if(f.type==="area"){
+        inner=`<textarea id="f_${f.k}">${esc(fval)}</textarea>`;
+      }else if(f.type==="select"){
+        inner=`<select id="f_${f.k}"><option value=""></option>`+
+          f.opts.map(o=>`<option ${o===fval?'selected':''}>${o}</option>`).join("")+`</select>`;
+      }else if(f.type==="stats"){
+        flush();
+        body+=`<label class="label">${f.l}</label><div class="field row3" style="grid-template-columns:repeat(6,1fr)">`+
+          STATS.map(([sk,sl])=>`<input id="st_${sk}" type="number" placeholder="${sl}" style="text-align:center">`).join("")+`</div>`;
+        return;
+      }else if(f.type==="entitylink"){
+        inner=`<input id="f_${f.k}" type="text" value="${esc(fval)}" placeholder="optional">
+               <input type="hidden" id="f_${f.k}_id" value="">`;
+      }else{
+        inner=`<input id="f_${f.k}" type="${f.type==='number'?'number':'text'}" value="${esc(fval)}">`;
+      }
+      const block=`<div${f.req?' ':''}><label class="label">${f.l}${f.req?' *':''}</label>${inner}</div>`;
+      if(f.row){ if(lastRow&&lastRow!==f.row) flush(); rowBuf.push(block); lastRow=f.row; }
+      else { flush(); lastRow=null; body+=`<div class="field">${block}</div>`; }
+    });
+    flush();
+    m.innerHTML=`
+      <div class="modal-head">
+        <h3>Neuer ${e.singular}</h3>
+        <button class="x" onclick="App.elCreateCancel('${prevSection}')">×</button>
+      </div>
+      <div class="modal-body detail">${body}</div>
+      <div class="modal-foot">
+        <button class="btn ghost" onclick="App.elCreateCancel('${prevSection}')">Abbrechen</button>
+        <button class="btn" onclick="App.elCreateSave('${prevSection}')">Anlegen & verknüpfen</button>
+      </div>`;
+    open();
+  },
+
+  elCreateCancel(prevSection){
+    this.section=prevSection; this.editId=null;
+    this._elPendingFk=null; this._elPendingLinkSec=null;
+    this.close();
+  },
+
+  elCreateSave(prevSection){
+    const linkSec=this._elPendingLinkSec; const fk=this._elPendingFk;
+    if(!linkSec||!fk){ this.elCreateCancel(prevSection); return; }
+    const e=ENTITIES[linkSec]; const rec={};
+    let firstReq=null;
+    e.fields.forEach(f=>{
+      if(f.type==="stats"){
+        const s={}; STATS.forEach(([sk])=>{const v=val("st_"+sk); if(v!=="")s[sk]=Number(v);}); rec.stats=s; return;
+      }
+      if(f.type==="entitylink"){
+        rec[f.k]=val("f_"+f.k)||"";
+        rec[f.k+"_id"]=val("f_"+f.k+"_id")||"";
+        return;
+      }
+      const v=val("f_"+f.k);
+      if(f.req && !v && !firstReq) firstReq=f.l;
+      rec[f.k]=f.type==="number"&&v!==""?Number(v):v;
+    });
+    if(firstReq){ toast('Bitte \u201e'+firstReq+'\u201c ausfüllen'); return; }
+    rec.id="r"+Date.now()+Math.floor(Math.random()*999);
+    rec.links=[];
+    this.rows(linkSec).push(rec);
+    this.commit();
+    // Zurück zur ursprünglichen Sektion, Widget befüllen
+    this.section=prevSection; this._elPendingFk=null; this._elPendingLinkSec=null;
+    this.editId=null;
+    const name=rec[e.title]||"?";
+    // Formular für den ursprünglichen Eintrag wieder herstellen — wir müssen
+    // nur das Widget-Feld mit dem neuen Eintrag befüllen.
+    this.elSelect(fk, rec.id, name);
+    this.renderNav();
+    // Modal wieder öffnen (es wurde durch elSelect nicht geschlossen)
+    open();
+    toast(`„${name}" angelegt`);
+  },
+
   /* --- Formular --- */
   openForm(id){
     const e=ENTITIES[this.section]; this.editId=id||null;
@@ -735,20 +979,28 @@ const App = {
       body+=`<div class="field ${cls}">${rowBuf.join("")}</div>`; rowBuf=[]; } };
 
     e.fields.forEach(f=>{
-      const val=r[f.k]!==undefined?r[f.k]:"";
+      const currentVal=r&&r[f.k]!==undefined?r[f.k]:"";
       let inner="";
       if(f.type==="area"){
-        inner=`<textarea id="f_${f.k}" ${f.secret?'style="border-color:rgba(168,85,47,.4)"':''}>${esc(val)}</textarea>`;
+        inner=`<textarea id="f_${f.k}" ${f.secret?'style="border-color:rgba(168,85,47,.4)"':''}>${esc(currentVal)}</textarea>`;
       }else if(f.type==="select"){
         inner=`<select id="f_${f.k}"><option value=""></option>`+
-          f.opts.map(o=>`<option ${o===val?'selected':''}>${o}</option>`).join("")+`</select>`;
+          f.opts.map(o=>`<option ${o===currentVal?'selected':''}>${o}</option>`).join("")+`</select>`;
       }else if(f.type==="stats"){
-        flush(); const s=r.stats||{};
+        flush(); const s=r&&r.stats||{};
         body+=`<label class="label">${f.l}</label><div class="field row3" style="grid-template-columns:repeat(6,1fr)">`+
           STATS.map(([sk,sl])=>`<input id="st_${sk}" type="number" placeholder="${sl}" value="${s[sk]!==undefined?s[sk]:''}" style="text-align:center">`).join("")+`</div>`;
         return;
+      }else if(f.type==="entitylink"){
+        // EntityLink-Widget einbetten
+        inner=this.elHtml(f, r||{});
+        // inner wird direkt als Block verwendet (kein zusätzliches Wrapper-input)
+        const block=`<div><label class="label">${f.l}</label>${inner}</div>`;
+        if(f.row){ if(lastRow&&lastRow!==f.row) flush(); rowBuf.push(block); lastRow=f.row; }
+        else { flush(); lastRow=null; body+=`<div class="field">${block}</div>`; }
+        return; // früh raus, da wir block schon eingefügt haben
       }else{
-        inner=`<input id="f_${f.k}" type="${f.type==='number'?'number':'text'}" value="${esc(val)}">`;
+        inner=`<input id="f_${f.k}" type="${f.type==='number'?'number':'text'}" value="${esc(currentVal)}">`;
       }
       const block=`<div${f.req?' ':''}><label class="label">${f.l}${f.req?' *':''}</label>${inner}</div>`;
       if(f.row){ if(lastRow&&lastRow!==f.row) flush(); rowBuf.push(block); lastRow=f.row; }
@@ -775,19 +1027,69 @@ const App = {
     const e=ENTITIES[this.section]; const rec={};
     let firstReq=null;
     e.fields.forEach(f=>{
-      if(f.type==="stats"){ const s={}; STATS.forEach(([sk])=>{const v=val("st_"+sk); if(v!=="")s[sk]=Number(v);}); rec.stats=s; return; }
+      if(f.type==="stats"){
+        const s={}; STATS.forEach(([sk])=>{const v=val("st_"+sk); if(v!=="")s[sk]=Number(v);}); rec.stats=s; return;
+      }
+      if(f.type==="entitylink"){
+        // Textfeld-Wert (für Anzeige / subtitle) und ID speichern
+        rec[f.k]=val("f_"+f.k)||"";
+        rec[f.k+"_id"]=val("f_"+f.k+"_id")||"";
+        return;
+      }
       const v=val("f_"+f.k);
       if(f.req && !v && !firstReq) firstReq=f.l;
       rec[f.k]=f.type==="number"&&v!==""?Number(v):v;
     });
-    if(firstReq){ toast("Bitte „"+firstReq+"“ ausfüllen"); return; }
+    if(firstReq){ toast('Bitte \u201e'+firstReq+'\u201c ausfüllen'); return; }
+
     const arr=this.rows(this.section);
+    let oldRec=null;
     if(this.editId){
       const i=arr.findIndex(x=>x.id===this.editId);
-      const existing=arr[i]; if(existing&&existing.links) rec.links=existing.links;
+      oldRec=arr[i];
+      if(oldRec&&oldRec.links) rec.links=oldRec.links;
       rec.id=this.editId; arr[i]=rec;
-    } else { rec.id="r"+Date.now()+Math.floor(Math.random()*999); arr.push(rec); }
+    } else {
+      rec.id="r"+Date.now()+Math.floor(Math.random()*999);
+      arr.push(rec);
+    }
+
+    // Bidirektionale entitylink-Verknüpfungen pflegen
+    e.fields.forEach(f=>{
+      if(f.type!=="entitylink") return;
+      const newLinkedId=rec[f.k+"_id"]||"";
+      const oldLinkedId=oldRec&&oldRec[f.k+"_id"]||"";
+
+      // Alte Verknüpfung entfernen falls geändert
+      if(oldLinkedId && oldLinkedId!==newLinkedId){
+        this._removeLinkBetween(this.section, rec.id, f.linkSec, oldLinkedId);
+      }
+      // Neue Verknüpfung anlegen
+      if(newLinkedId && newLinkedId!==oldLinkedId){
+        const toR=this.rows(f.linkSec).find(x=>x.id===newLinkedId);
+        if(toR){
+          if(!rec.links) rec.links=[];
+          if(!toR.links) toR.links=[];
+          // Doppelte verhindern
+          if(!rec.links.some(lk=>lk.id===newLinkedId)){
+            rec.links.push({sec:f.linkSec, id:newLinkedId, label:f.linkLabel||""});
+          }
+          if(!toR.links.some(lk=>lk.id===rec.id)){
+            toR.links.push({sec:this.section, id:rec.id, label:f.linkLabelBack||""});
+          }
+        }
+      }
+    });
+
     this.commit(); this.close(); this.renderNav(); this.render(); toast("Gespeichert");
+  },
+
+  // Hilfsfunktion: Link zwischen zwei Einträgen beidseitig entfernen
+  _removeLinkBetween(secA, idA, secB, idB){
+    const rA=this.rows(secA).find(x=>x.id===idA);
+    const rB=this.rows(secB).find(x=>x.id===idB);
+    if(rA&&rA.links) rA.links=rA.links.filter(lk=>!(lk.sec===secB&&lk.id===idB));
+    if(rB&&rB.links) rB.links=rB.links.filter(lk=>!(lk.sec===secA&&lk.id===idA));
   },
 
   /* --- Detail --- */
@@ -801,6 +1103,26 @@ const App = {
     }
     e.fields.forEach(f=>{
       if(f.type==="stats")return;
+      if(f.type==="entitylink"){
+        // In der Detailansicht: wenn eine verlinkte ID existiert, als klickbaren Link anzeigen
+        const linkedId=r[f.k+"_id"];
+        const linkedName=r[f.k];
+        if(!linkedName&&!linkedId) return;
+        if(linkedId){
+          const te=ENTITIES[f.linkSec];
+          const tr=te?this.rows(f.linkSec).find(x=>x.id===linkedId):null;
+          const displayName=tr?tr[te.title]:linkedName;
+          body+=`<div class="blk"><h4>${f.l}</h4>
+            <p style="display:flex;align-items:center;gap:10px">
+              <span class="link-ico">${te?te.icon:""}</span>
+              <span style="cursor:pointer;color:var(--gold-bright);font-family:'Cinzel',serif;font-size:17px"
+                onclick="App.goToLinked('${f.linkSec}','${linkedId}')">${esc(displayName||linkedName||"?")}</span>
+            </p></div>`;
+        } else {
+          body+=`<div class="blk"><h4>${f.l}</h4><p>${esc(linkedName)}</p></div>`;
+        }
+        return;
+      }
       const v=r[f.k]; if(v===undefined||v===""||v===null)return;
       const cls=f.secret?'secret':'';
       body+=`<div class="blk"><h4>${f.l}</h4><p class="${cls}">${esc(String(v))}</p></div>`;
@@ -848,16 +1170,21 @@ const App = {
     if(i>-1)arr.splice(i,1);
     // Gegenseiten-Links entfernen
     for(const k in ENTITIES){
-      this.rows(k).forEach(r=>{ if(r.links) r.links=r.links.filter(lk=>lk.id!==id); });
+      this.rows(k).forEach(r=>{
+        if(r.links) r.links=r.links.filter(lk=>lk.id!==id);
+        // entitylink-Felder bereinigen
+        ENTITIES[k].fields.forEach(f=>{
+          if(f.type==="entitylink"&&r[f.k+"_id"]===id){ r[f.k]=""; r[f.k+"_id"]=""; }
+        });
+      });
     }
     this.commit(); this.close(); this.renderNav(); this.render(); toast("Gelöscht");
   },
-  /* --- Verknüpfungen --- */
+
+  /* --- Verknüpfungen (manuell) --- */
   openLinkDialog(fromId){
     const fromSec=this.section;
-    const fromE=ENTITIES[fromSec];
     const fromR=this.rows(fromSec).find(x=>x.id===fromId); if(!fromR)return;
-    // Alle Einträge aller Entitäten außer sich selbst
     let opts="";
     for(const k in ENTITIES){
       const e=ENTITIES[k];
@@ -874,9 +1201,9 @@ const App = {
           <select id="lk_target">${opts}</select></div>
         <div class="field row2">
           <div><label class="label">Bezeichnung (von hier aus)</label>
-            <input id="lk_label_a" placeholder="z. B. wohnt in, begleitet …"></div>
+            <input id="lk_label_a" placeholder="z. B. wohnt in, begleitet …"></div>
           <div><label class="label">Bezeichnung (von dort aus)</label>
-            <input id="lk_label_b" placeholder="z. B. beherbergt, wird begleitet …"></div>
+            <input id="lk_label_b" placeholder="z. B. beherbergt, wird begleitet …"></div>
         </div>
       </div>
       <div class="modal-foot">
@@ -897,7 +1224,6 @@ const App = {
     if(!fromR||!toR){toast("Eintrag nicht gefunden");return;}
     if(!fromR.links)fromR.links=[];
     if(!toR.links)toR.links=[];
-    // Doppelte verhindern
     if(fromR.links.some(lk=>lk.id===toId)){toast("Bereits verknüpft");return;}
     fromR.links.push({sec:toSec,id:toId,label:labelA});
     toR.links.push({sec:fromSec,id:fromId,label:labelB});
@@ -909,7 +1235,6 @@ const App = {
     const fromSec=this.section;
     const fromR=this.rows(fromSec).find(x=>x.id===fromId);
     if(fromR&&fromR.links) fromR.links=fromR.links.filter(lk=>lk.id!==toId);
-    // Gegenseite ebenfalls entfernen
     for(const k in ENTITIES){
       const toR=this.rows(k).find(x=>x.id===toId);
       if(toR&&toR.links) toR.links=toR.links.filter(lk=>lk.id!==fromId);
@@ -920,7 +1245,6 @@ const App = {
   goToLinked(sec,id){
     this.section=sec; this.close();
     this.renderNav(); this.render();
-    // Kurze Verzögerung, damit render() abgeschlossen ist
     setTimeout(()=>this.openDetail(id),60);
   },
 
@@ -1248,10 +1572,10 @@ const App = {
     const copy=JSON.parse(JSON.stringify(src)); copy.id="r"+Date.now()+Math.floor(Math.random()*999);
     this.camp().data[tab].push(copy);
     this.commit(); this.renderNav(); this.close();
-    toast(`„${src[ENTITIES[tab].title]}“ in ${this.camp().name} kopiert`);
+    toast(`„${src[ENTITIES[tab].title]}" in ${this.camp().name} kopiert`);
   },
 
-  /* --- Import / Sicherung laden --- */
+  /* --- Import / Export --- */
   importData(){ document.getElementById("importFile").click(); },
   onImportFile(input){
     const f=input.files&&input.files[0]; if(!f)return;
