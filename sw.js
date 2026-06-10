@@ -3,7 +3,7 @@
    "cache-first" mit Netzwerk-Fallback und Laufzeit-Caching
    (z. B. für die Google-Schriftarten beim ersten Online-Start). */
 
-const CACHE = "slw-v13";
+const CACHE = "slw-v14";
 const CORE = [
   "./",
   "./index.html",
@@ -35,7 +35,6 @@ self.addEventListener("fetch", e => {
     caches.match(e.request).then(hit => {
       if (hit) return hit;
       return fetch(e.request).then(res => {
-        // Erfolgreiche Antworten fürs nächste Mal zwischenspeichern
         if (res && res.status === 200) {
           const copy = res.clone();
           caches.open(CACHE).then(c => c.put(e.request, copy)).catch(() => {});
