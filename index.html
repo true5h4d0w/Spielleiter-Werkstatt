@@ -638,6 +638,8 @@ const App = {
       <span class="ico">⚄</span> Würfel</div>`;
     html+=`<div class="nav-item ${this.section==='bibliothek'?'active':''}" onclick="App.go('bibliothek')">
       <span class="ico">❦</span> SRD-Bibliothek</div>`;
+    html+=`<div class="nav-item ${this.section==='scanner'?'active':''}" onclick="App.go('scanner')">
+      <span class="ico">&#128247;</span> Karten-Scanner</div>`;
     for(const k in ENTITIES){
       const e=ENTITIES[k], n=this.rows(k).length;
       html+=`<div class="nav-item ${this.section===k?'active':''}" onclick="App.go('${k}')">
@@ -685,6 +687,7 @@ const App = {
     if(this.section==="kampf"){ this.combatRender(); return; }
     if(this.section==="wuerfel"){ this.diceRender(); return; }
     if(this.section==="bibliothek"){ this.libRender(); return; }
+    if(this.section==="scanner"){ this.scanRender(); return; }
     const e=ENTITIES[this.section];
     title.textContent=e.label; addBtn.style.display=""; search.style.display="";
     addBtn.textContent="+ "+e.singular; search.placeholder="Suchen…";
