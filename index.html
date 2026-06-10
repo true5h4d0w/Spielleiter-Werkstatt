@@ -1648,11 +1648,23 @@ const App = {
     document.getElementById("addBtn").style.display="none";
     document.getElementById("search").style.display="none";
     const c=document.getElementById("content");
+    const savedKey=localStorage.getItem("slw_apikey")||"";
+    const keySet=savedKey.startsWith("sk-ant-");
     c.innerHTML=`
       <div style="max-width:560px;margin:0 auto">
+        <div class="apikey-box">
+          <p>&#128273; Anthropic API-Key erforderlich. Wird nur lokal gespeichert und nie weitergegeben.<br>
+          Key unter <b>console.anthropic.com</b> erstellen (kostenlos testbar).</p>
+          <div class="apikey-row">
+            <input id="apikeyInput" type="password" placeholder="sk-ant-api03-..."
+              value="${esc(savedKey)}" style="flex:1;font-family:monospace;font-size:14px">
+            <button class="btn" style="padding:10px 14px;font-size:13px" onclick="App.scanSaveKey()">Speichern</button>
+          </div>
+          <div class="apikey-saved" id="apikeySaved">${keySet?"&#10003; Key gespeichert":""}</div>
+        </div>
         <p style="color:var(--ink-faint);font-size:16px;margin-bottom:20px;line-height:1.5">
-          Fotografiere eine Karte aus dem Starterset (NSC, Monster, Gegenstand, Zauber) und
-          die KI liest alle Daten automatisch aus und legt den Eintrag in deiner Kampagne an.
+          Fotografiere eine Karte (NSC, Monster, Gegenstand, Zauber) — die KI liest alle
+          Daten aus und legt den Eintrag direkt in deiner Kampagne an.
         </p>
         <div class="scan-drop" id="scanDrop" onclick="document.getElementById('scanFileIn').click()"
           ondragover="event.preventDefault();this.classList.add('drag')"
@@ -1667,6 +1679,15 @@ const App = {
         <div id="scanStatus"></div>
         <div id="scanResultArea"></div>
       </div>`;
+  },
+
+  scanSaveKey(){
+    const k=(document.getElementById("apikeyInput")||{}).value||"";
+    if(!k.startsWith("sk-ant-")){ toast("Ung\u00fcltiger Key \u2014 muss mit sk-ant- beginnen"); return; }
+    localStorage.setItem("slw_apikey", k);
+    const el=document.getElementById("apikeySaved");
+    if(el){ el.textContent="\u2713 Key gespeichert"; el.style.display="block"; }
+    toast("API-Key gespeichert");
   },
 
   scanOnDrop(ev){
@@ -1695,7 +1716,7 @@ const App = {
 
       // Drop-Bereich durch Vorschau ersetzen
       const drop=document.getElementById("scanDrop");
-      if(drop) drop.innerHTML=`<img class="scan-preview" src="${ev.target.result}" alt="Vorschau">
+      if(drop) drop.innerHTML=`<img style="width:100%;max-height:180px;object-fit:contain;border-radius:10px;border:1px solid var(--line);margin:10px auto;display:block" src="${ev.target.result}" alt="Vorschau">
         <p style="color:var(--ink-faint);font-size:14px;margin-top:6px">
           <span style="cursor:pointer;color:var(--gold)" onclick="document.getElementById('scanFileIn').click()">
           Anderes Foto w\u00e4hlen</span></p>`;
@@ -1725,9 +1746,15 @@ Felder die auf der Karte nicht erkennbar sind: weglassen oder leer lassen.
 Gerüchte / Fluff-Text bei NSC: in "notizen" packen.
 Persönlichkeitsmerkmale + Eigenschaften bei NSC: in "persoenlichkeit".`;
 
+        const apiKey=localStorage.getItem("slw_apikey")||"";
+        if(!apiKey.startsWith("sk-ant-")){
+          status.innerHTML=`<div class="scan-status" style="color:var(--red)">
+            &#9888; Bitte zuerst einen g\u00fcltigen API-Key eintragen.</div>`;
+          return;
+        }
         const response=await fetch("https://api.anthropic.com/v1/messages",{
           method:"POST",
-          headers:{"Content-Type":"application/json"},
+          headers:{"Content-Type":"application/json","x-api-key":apiKey,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},
           body:JSON.stringify({
             model:"claude-sonnet-4-20250514",
             max_tokens:1000,
