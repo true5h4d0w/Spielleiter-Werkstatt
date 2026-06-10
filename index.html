@@ -1737,7 +1737,8 @@ Erkenne den Kartentyp anhand des Inhalts und gib GENAU eines dieser Schlüsselw�
 
 Befülle dann die passenden Felder. Verwende immer DEUTSCHE Inhalte.
 
-Für nsc: { typ, name, rolle, spezies, beschreibung, persoenlichkeit, geheimnisse, notizen }
+Für nsc: { typ, name, rolle, spezies, beschreibung, aussehen, persoenlichkeit, geheimnisse, notizen }
+Beim Feld "aussehen": Beschreibe das Aussehen der abgebildeten Person basierend auf der Illustration (Haarfarbe, Augenfarbe, Kleidung, Rüstung, besondere Merkmale). Falls keine Illustration vorhanden, weglassen.
 Für monster: { typ, name, groesse, monstertyp, gesinnung, hg, rk, hp, speed, faehigkeiten, aktionen, beschreibung }
 Für gegenstand: { typ, name, gegenstandtyp, seltenheit, magisch, abstimmung, beschreibung }
 Für zauber: { typ, name, grad, schule, zeit, reichweite, komponenten, dauer, beschreibung, hoeher }
@@ -1804,6 +1805,7 @@ Persönlichkeitsmerkmale + Eigenschaften bei NSC: in "persoenlichkeit".`;
       if(p.rolle) fields.push(["Rolle",p.rolle]);
       if(p.spezies) fields.push(["Spezies",p.spezies]);
       if(p.beschreibung) fields.push(["Beschreibung",p.beschreibung]);
+      if(p.aussehen) fields.push(["Aussehen",p.aussehen]);
       if(p.persoenlichkeit) fields.push(["Pers\u00f6nlichkeit",p.persoenlichkeit]);
       if(p.geheimnisse) fields.push(["Geheimnisse",p.geheimnisse]);
       if(p.notizen) fields.push(["Notizen / Ger\u00fcchte",p.notizen]);
@@ -1869,7 +1871,7 @@ Persönlichkeitsmerkmale + Eigenschaften bei NSC: in "persoenlichkeit".`;
         name:p.name||"Unbekannt",
         rolle:p.rolle||"",
         spezies:p.spezies||"",
-        beschreibung:p.beschreibung||"",
+        beschreibung:[p.beschreibung,p.aussehen].filter(Boolean).join("\n\n")||"",
         persoenlichkeit:p.persoenlichkeit||"",
         geheimnisse:p.geheimnisse||"",
         notizenSL:p.notizen||""
