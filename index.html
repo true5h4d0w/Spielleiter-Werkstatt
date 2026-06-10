@@ -1635,6 +1635,269 @@ const App = {
     toast("Import abgeschlossen");
   },
 
+
+  /* --- Karten-Scanner --- */
+  _scanImgData: null,
+  _scanResult: null,
+
+  scanRender(){
+    document.getElementById("sectionTitle").textContent="Karten-Scanner";
+    document.getElementById("addBtn").style.display="none";
+    document.getElementById("search").style.display="none";
+    const c=document.getElementById("content");
+    c.innerHTML=`
+      <div style="max-width:560px;margin:0 auto">
+        <p style="color:var(--ink-faint);font-size:16px;margin-bottom:20px;line-height:1.5">
+          Fotografiere eine Karte aus dem Starterset (NSC, Monster, Gegenstand, Zauber) und
+          die KI liest alle Daten automatisch aus und legt den Eintrag in deiner Kampagne an.
+        </p>
+        <div class="scan-drop" id="scanDrop" onclick="document.getElementById('scanFileIn').click()"
+          ondragover="event.preventDefault();this.classList.add('drag')"
+          ondragleave="this.classList.remove('drag')"
+          ondrop="App.scanOnDrop(event)">
+          <div class="ico">&#128247;</div>
+          <p>Foto aufnehmen oder Datei w&#228;hlen</p>
+          <p class="hint">JPG, PNG &bull; auf Mobilger&#228;ten &#246;ffnet sich die Kamera</p>
+        </div>
+        <input type="file" id="scanFileIn" accept="image/*" capture="environment"
+          style="display:none" onchange="App.scanOnFile(this)">
+        <div id="scanStatus"></div>
+        <div id="scanResultArea"></div>
+      </div>`;
+  },
+
+  scanOnDrop(ev){
+    ev.preventDefault();
+    document.getElementById("scanDrop").classList.remove("drag");
+    const file=ev.dataTransfer.files&&ev.dataTransfer.files[0];
+    if(file) this._scanProcess(file);
+  },
+
+  scanOnFile(input){
+    const file=input.files&&input.files[0];
+    if(file){ this._scanProcess(file); input.value=""; }
+  },
+
+  _scanProcess(file){
+    if(!file.type.startsWith("image/")){ toast("Bitte ein Bild ausw\u00e4hlen"); return; }
+    const status=document.getElementById("scanStatus");
+    const resultArea=document.getElementById("scanResultArea");
+    if(!status||!resultArea) return;
+
+    // Vorschau zeigen
+    const reader=new FileReader();
+    reader.onload=async(ev)=>{
+      const base64=ev.target.result.split(",")[1];
+      const mimeType=file.type||"image/jpeg";
+
+      // Drop-Bereich durch Vorschau ersetzen
+      const drop=document.getElementById("scanDrop");
+      if(drop) drop.innerHTML=`<img class="scan-preview" src="${ev.target.result}" alt="Vorschau">
+        <p style="color:var(--ink-faint);font-size:14px;margin-top:6px">
+          <span style="cursor:pointer;color:var(--gold)" onclick="document.getElementById('scanFileIn').click()">
+          Anderes Foto w\u00e4hlen</span></p>`;
+
+      status.innerHTML=`<div class="scan-status"><span class="spin">&#9881;</span> Karte wird analysiert\u2026</div>`;
+      resultArea.innerHTML="";
+
+      try{
+        const prompt=`Du analysierst eine D&D / Pen-&-Paper-Rollenspieltafel-Karte.
+Lies alle sichtbaren Daten von der Karte und gib sie als JSON-Objekt aus.
+Antworte NUR mit dem JSON, ohne Markdown-Code-Blöcke, ohne Erklärungen.
+
+Erkenne den Kartentyp anhand des Inhalts und gib GENAU eines dieser Schlüsselwörter im Feld "typ" zurück:
+- "nsc" für NSC / Charaktere / Personen
+- "monster" für Monster / Kreaturen / Bestien
+- "gegenstand" für Gegenstände, Waffen, Rüstungen, Tränke, magische Items
+- "zauber" für Zaubersprüche / Zauberkarten
+
+Befülle dann die passenden Felder. Verwende immer DEUTSCHE Inhalte.
+
+Für nsc: { typ, name, rolle, spezies, beschreibung, persoenlichkeit, geheimnisse, notizen }
+Für monster: { typ, name, groesse, monstertyp, gesinnung, hg, rk, hp, speed, faehigkeiten, aktionen, beschreibung }
+Für gegenstand: { typ, name, gegenstandtyp, seltenheit, magisch, abstimmung, beschreibung }
+Für zauber: { typ, name, grad, schule, zeit, reichweite, komponenten, dauer, beschreibung, hoeher }
+
+Felder die auf der Karte nicht erkennbar sind: weglassen oder leer lassen.
+Gerüchte / Fluff-Text bei NSC: in "notizen" packen.
+Persönlichkeitsmerkmale + Eigenschaften bei NSC: in "persoenlichkeit".`;
+
+        const response=await fetch("https://api.anthropic.com/v1/messages",{
+          method:"POST",
+          headers:{"Content-Type":"application/json"},
+          body:JSON.stringify({
+            model:"claude-sonnet-4-20250514",
+            max_tokens:1000,
+            messages:[{
+              role:"user",
+              content:[
+                {type:"image",source:{type:"base64",media_type:mimeType,data:base64}},
+                {type:"text",text:prompt}
+              ]
+            }]
+          })
+        });
+
+        if(!response.ok){
+          const err=await response.json().catch(()=>({}));
+          throw new Error(err.error?.message||("HTTP "+response.status));
+        }
+
+        const data=await response.json();
+        const raw=data.content.map(i=>i.text||"").join("").trim();
+        const clean=raw.replace(/^```[a-z]*\n?/,"").replace(/```$/,"").trim();
+        let parsed;
+        try{ parsed=JSON.parse(clean); }
+        catch(e){ throw new Error("Kein gültiges JSON: "+raw.substring(0,120)); }
+
+        this._scanResult=parsed;
+        status.innerHTML="";
+        this._scanShowResult(parsed, resultArea);
+
+      }catch(err){
+        status.innerHTML=`<div class="scan-status" style="color:var(--red)">
+          &#9888; Fehler: ${esc(err.message)}</div>`;
+      }
+    };
+    reader.readAsDataURL(file);
+  },
+
+  _scanShowResult(p, container){
+    const typ=p.typ||"";
+    const typMap={nsc:"NSC",monster:"Monster / Kreatur",gegenstand:"Gegenstand",zauber:"Zauber"};
+    const typLabel=typMap[typ]||typ||"Unbekannt";
+
+    // Felder je Typ aufbereiten
+    let fields=[];
+    if(typ==="nsc"){
+      if(p.name) fields.push(["Name",p.name]);
+      if(p.rolle) fields.push(["Rolle",p.rolle]);
+      if(p.spezies) fields.push(["Spezies",p.spezies]);
+      if(p.beschreibung) fields.push(["Beschreibung",p.beschreibung]);
+      if(p.persoenlichkeit) fields.push(["Pers\u00f6nlichkeit",p.persoenlichkeit]);
+      if(p.geheimnisse) fields.push(["Geheimnisse",p.geheimnisse]);
+      if(p.notizen) fields.push(["Notizen / Ger\u00fcchte",p.notizen]);
+    } else if(typ==="monster"){
+      if(p.name) fields.push(["Name",p.name]);
+      if(p.groesse) fields.push(["Gr\u00f6\u00dfe",p.groesse]);
+      if(p.monstertyp) fields.push(["Typ",p.monstertyp]);
+      if(p.gesinnung) fields.push(["Gesinnung",p.gesinnung]);
+      if(p.hg) fields.push(["HG",p.hg]);
+      if(p.rk) fields.push(["R\u00fcstungsklasse",p.rk]);
+      if(p.hp) fields.push(["Trefferpunkte",p.hp]);
+      if(p.speed) fields.push(["Bewegung",p.speed]);
+      if(p.faehigkeiten) fields.push(["Eigenschaften",p.faehigkeiten]);
+      if(p.aktionen) fields.push(["Aktionen",p.aktionen]);
+      if(p.beschreibung) fields.push(["Beschreibung",p.beschreibung]);
+    } else if(typ==="gegenstand"){
+      if(p.name) fields.push(["Name",p.name]);
+      if(p.gegenstandtyp) fields.push(["Typ",p.gegenstandtyp]);
+      if(p.seltenheit) fields.push(["Seltenheit",p.seltenheit]);
+      if(p.magisch) fields.push(["Magisch",p.magisch]);
+      if(p.abstimmung) fields.push(["Abstimmung",p.abstimmung]);
+      if(p.beschreibung) fields.push(["Beschreibung",p.beschreibung]);
+    } else if(typ==="zauber"){
+      if(p.name) fields.push(["Name",p.name]);
+      if(p.grad!==undefined) fields.push(["Grad",p.grad]);
+      if(p.schule) fields.push(["Schule",p.schule]);
+      if(p.zeit) fields.push(["Wirkungszeit",p.zeit]);
+      if(p.reichweite) fields.push(["Reichweite",p.reichweite]);
+      if(p.komponenten) fields.push(["Komponenten",p.komponenten]);
+      if(p.dauer) fields.push(["Dauer",p.dauer]);
+      if(p.beschreibung) fields.push(["Beschreibung",p.beschreibung]);
+      if(p.hoeher) fields.push(["H\u00f6here Grade",p.hoeher]);
+    } else {
+      // Fallback: alle vorhandenen Felder
+      Object.entries(p).forEach(([k,v])=>{ if(k!=="typ"&&v) fields.push([k,v]); });
+    }
+
+    const fieldsHtml=fields.map(([k,v])=>`
+      <div class="scan-field">
+        <span class="sk">${esc(k)}</span>
+        <span class="sv">${esc(String(v))}</span>
+      </div>`).join("");
+
+    container.innerHTML=`
+      <div class="scan-result">
+        <h4>&#128269; Erkannt: ${esc(typLabel)}</h4>
+        ${fieldsHtml}
+      </div>
+      <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap">
+        <button class="btn" onclick="App.scanSave()">&#10003; In Kampagne speichern</button>
+        <button class="btn ghost" onclick="App.scanRender()">Neue Karte scannen</button>
+      </div>`;
+  },
+
+  scanSave(){
+    const p=this._scanResult; if(!p){ toast("Nichts zu speichern"); return; }
+    const typ=p.typ||"";
+    let section="", rec={};
+
+    if(typ==="nsc"){
+      section="nsc";
+      rec={
+        name:p.name||"Unbekannt",
+        rolle:p.rolle||"",
+        spezies:p.spezies||"",
+        beschreibung:p.beschreibung||"",
+        persoenlichkeit:p.persoenlichkeit||"",
+        geheimnisse:p.geheimnisse||"",
+        notizenSL:p.notizen||""
+      };
+    } else if(typ==="monster"){
+      section="monster";
+      rec={
+        name:p.name||"Unbekannt",
+        groesse:p.groesse||"",
+        typ:p.monstertyp||"",
+        gesinnung:p.gesinnung||"",
+        hg:p.hg||"",
+        rk:parseInt(p.rk)||0,
+        hp:parseInt(p.hp)||0,
+        speed:p.speed||"",
+        faehigkeiten:p.faehigkeiten||"",
+        aktionen:p.aktionen||"",
+        beschreibung:p.beschreibung||""
+      };
+    } else if(typ==="gegenstand"){
+      section="gegenstaende";
+      rec={
+        name:p.name||"Unbekannt",
+        typ:p.gegenstandtyp||"Sonstiges",
+        seltenheit:p.seltenheit||"",
+        magisch:p.magisch||"nein",
+        abstimmung:p.abstimmung||"nein",
+        beschreibung:p.beschreibung||""
+      };
+    } else if(typ==="zauber"){
+      section="zauber";
+      rec={
+        name:p.name||"Unbekannt",
+        grad:parseInt(p.grad)||0,
+        schule:p.schule||"",
+        zeit:p.zeit||"",
+        reichweite:p.reichweite||"",
+        komponenten:p.komponenten||"",
+        dauer:p.dauer||"",
+        beschreibung:p.beschreibung||"",
+        hoeher:p.hoeher||""
+      };
+    } else {
+      toast("Kartentyp nicht erkannt \u2014 bitte manuell anlegen"); return;
+    }
+
+    rec.id="r"+Date.now()+Math.floor(Math.random()*999);
+    rec.links=[];
+    this.rows(section).push(rec);
+    this.commit();
+    this._scanResult=null;
+    const label=ENTITIES[section].singular;
+    this.section=section;
+    this.renderNav();
+    this.render();
+    toast(label+" \u201e"+rec.name+"\u201c gespeichert");
+  },
+
   exportData(){
     const blob=new Blob([JSON.stringify(this.state,null,2)],{type:"application/json"});
     const a=document.createElement("a"); a.href=URL.createObjectURL(blob);
