@@ -1863,11 +1863,11 @@ Persönlichkeitsmerkmale + Eigenschaften bei NSC: in "persoenlichkeit".`;
   scanSave(){
     const p=this._scanResult; if(!p){ toast("Nichts zu speichern"); return; }
     const typ=p.typ||"";
-    let section="", rec={};
+    let section="", newFields={};
 
     if(typ==="nsc"){
       section="nsc";
-      rec={
+      newFields={
         name:p.name||"Unbekannt",
         rolle:p.rolle||"",
         spezies:p.spezies||"",
@@ -1878,7 +1878,7 @@ Persönlichkeitsmerkmale + Eigenschaften bei NSC: in "persoenlichkeit".`;
       };
     } else if(typ==="monster"){
       section="monster";
-      rec={
+      newFields={
         name:p.name||"Unbekannt",
         groesse:p.groesse||"",
         typ:p.monstertyp||"",
@@ -1893,7 +1893,7 @@ Persönlichkeitsmerkmale + Eigenschaften bei NSC: in "persoenlichkeit".`;
       };
     } else if(typ==="gegenstand"){
       section="gegenstaende";
-      rec={
+      newFields={
         name:p.name||"Unbekannt",
         typ:p.gegenstandtyp||"Sonstiges",
         seltenheit:p.seltenheit||"",
@@ -1903,7 +1903,7 @@ Persönlichkeitsmerkmale + Eigenschaften bei NSC: in "persoenlichkeit".`;
       };
     } else if(typ==="zauber"){
       section="zauber";
-      rec={
+      newFields={
         name:p.name||"Unbekannt",
         grad:parseInt(p.grad)||0,
         schule:p.schule||"",
@@ -1918,16 +1918,44 @@ Persönlichkeitsmerkmale + Eigenschaften bei NSC: in "persoenlichkeit".`;
       toast("Kartentyp nicht erkannt \u2014 bitte manuell anlegen"); return;
     }
 
-    rec.id="r"+Date.now()+Math.floor(Math.random()*999);
-    rec.links=[];
-    this.rows(section).push(rec);
-    this.commit();
-    this._scanResult=null;
-    const label=ENTITIES[section].singular;
-    this.section=section;
-    this.renderNav();
-    this.render();
-    toast(label+" \u201e"+rec.name+"\u201c gespeichert");
+    const titleKey=ENTITIES[section].title;
+    const name=newFields[titleKey]||newFields.name||"Unbekannt";
+    const arr=this.rows(section);
+    const existing=arr.find(r=>(r[titleKey]||"").toLowerCase()===name.toLowerCase());
+
+    if(existing){
+      // Merge: leere Felder im bestehenden Eintrag mit neuen Daten auffüllen
+      // Textfelder zusammenführen wenn beide Inhalt haben
+      Object.keys(newFields).forEach(k=>{
+        if(k===titleKey) return; // Name nie überschreiben
+        const nv=newFields[k]; const ov=existing[k];
+        if(!nv) return; // nichts Neues
+        if(!ov || ov==="" || ov===0){
+          existing[k]=nv; // Feld war leer → füllen
+        } else if(typeof nv==="string" && typeof ov==="string" && nv!==ov){
+          existing[k]=ov+"\n\n"+nv; // beide haben Text → anhängen
+        }
+        // Zahlen: nur überschreiben wenn bisher 0
+      });
+      this.commit();
+      this._scanResult=null;
+      const label=ENTITIES[section].singular;
+      this.section=section;
+      this.renderNav();
+      this.render();
+      toast(label+" \u201e"+name+"\u201c erg\u00e4nzt");
+    } else {
+      // Neuer Eintrag
+      const rec=Object.assign({id:"r"+Date.now()+Math.floor(Math.random()*999),links:[]},newFields);
+      arr.push(rec);
+      this.commit();
+      this._scanResult=null;
+      const label=ENTITIES[section].singular;
+      this.section=section;
+      this.renderNav();
+      this.render();
+      toast(label+" \u201e"+name+"\u201c gespeichert");
+    }
   },
 
   exportData(){
