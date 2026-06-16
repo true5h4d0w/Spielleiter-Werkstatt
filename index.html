@@ -254,6 +254,36 @@
   .log-row .ll{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-faint);white-space:nowrap}
   @media(max-width:860px){.dice-total{font-size:54px}.die{width:54px;height:54px;font-size:16px}.log-row .ll{display:none}}
 
+  /* KAMPF-WÜRFELPANEL */
+  .combat-dice{background:linear-gradient(180deg,var(--panel-2),var(--panel));border:1px solid var(--line);
+    border-radius:12px;padding:14px 16px;margin-bottom:16px}
+  .combat-dice-head{display:flex;align-items:center;gap:12px;cursor:pointer;user-select:none}
+  .combat-dice-head .cdlabel{font-family:'Cinzel',serif;font-size:13px;letter-spacing:.06em;text-transform:uppercase;
+    color:var(--ink-faint);flex:1}
+  .combat-dice-head .cdresult{font-family:'Cinzel',serif;font-size:22px;color:var(--gold-bright);min-width:36px;text-align:right}
+  .combat-dice-head .cdresult.crit{color:#a6c87a}
+  .combat-dice-head .cdresult.fumble{color:#e08980}
+  .combat-dice-head .cdbreak{font-size:13px;color:var(--ink-dim);flex:2;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+  .combat-dice-head .cdtoggle{color:var(--ink-faint);font-size:14px;transition:transform .2s;flex-shrink:0}
+  .combat-dice-head .cdtoggle.open{transform:rotate(180deg)}
+  .combat-dice-body{margin-top:14px;display:none;border-top:1px solid var(--line);padding-top:14px}
+  .combat-dice-body.open{display:block}
+  .cd-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+  .cd-die{width:46px;height:46px;border-radius:10px;border:1px solid var(--line);background:var(--bg-2);color:var(--ink);
+    font-family:'Cinzel',serif;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.13s}
+  .cd-die:hover{border-color:var(--gold);color:var(--gold-bright);transform:translateY(-2px)}
+  .cd-die:active{transform:translateY(0)}
+  .cd-adv{font-family:'Cinzel',serif;font-size:13px;letter-spacing:.02em;padding:9px 12px;border-radius:8px;
+    cursor:pointer;border:1px solid var(--line);background:var(--bg-2);color:var(--ink);transition:.13s;white-space:nowrap}
+  .cd-adv:hover{border-color:var(--gold);color:var(--gold-bright)}
+  .cd-adv.up:hover{border-color:var(--green);color:#a6c87a}
+  .cd-adv.down:hover{border-color:var(--rust);color:#d79468}
+  .cd-mod{display:flex;align-items:center;gap:5px}
+  .cd-mod .label2{font-size:12px}
+  .cd-mod-step{width:28px;height:28px;border-radius:6px;border:1px solid var(--line);background:var(--bg-2);color:var(--ink-dim);font-size:16px;cursor:pointer}
+  .cd-mod-step:hover{border-color:var(--ink-faint);color:var(--ink)}
+  .cd-mod-in{width:46px;text-align:center;font-family:'Cinzel',serif;font-size:16px;padding:5px 4px}
+
   /* INITIATIVE-TRACKER */
   .combat-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:22px;
     background:linear-gradient(180deg,var(--panel-2),var(--panel));border:1px solid var(--line);border-radius:12px;padding:13px 16px}
@@ -1258,6 +1288,69 @@ const App = {
   rollInit(dex){ return 1+Math.floor(Math.random()*20)+Math.floor(((dex||10)-10)/2); },
   combatSort(){ this.combat().list.sort((a,b)=>(b.init-a.init)||(b.dex-a.dex)||a.name.localeCompare(b.name)); },
 
+  combatDiceMod:0, combatDiceOpen:false,
+
+  combatRollInline(mode){
+    const mod=parseInt(document.getElementById("cd_mod")?.value)||this.combatDiceMod||0;
+    this.combatDiceMod=mod;
+    const r1=1+Math.floor(Math.random()*20); let rolls=[r1], nat=r1;
+    if(mode!=="normal"){ const r2=1+Math.floor(Math.random()*20); rolls=[r1,r2]; nat=mode==="adv"?Math.max(r1,r2):Math.min(r1,r2); }
+    const total=nat+mod;
+    let bd = mode==="normal"?`W20 [${nat}]`:`W20 ${mode==="adv"?"Vorteil":"Nachteil"} [${rolls.join(", ")}] → ${nat}`;
+    if(mod) bd += mod>0?` + ${mod}`:` − ${Math.abs(mod)}`;
+    bd += ` = ${total}`;
+    const flag = nat===20?"crit":nat===1?"fumble":"";
+    this._combatLastRoll={total,bd,flag,label:mode==="normal"?"W20":mode==="adv"?"W20 Vorteil":"W20 Nachteil"};
+    const log=this.diceLog(); log.unshift({label:this._combatLastRoll.label,total,breakdown:bd,flag}); if(log.length>40)log.length=40;
+    this.commit(); this.combatRender();
+  },
+  combatQuickInline(sides){
+    const v=1+Math.floor(Math.random()*sides);
+    const flag=sides===20?(v===20?"crit":v===1?"fumble":""):"";
+    const bd=`W${sides} [${v}] = ${v}`;
+    this._combatLastRoll={total:v,bd,flag,label:"W"+sides};
+    const log=this.diceLog(); log.unshift({label:"W"+sides,total:v,breakdown:bd,flag}); if(log.length>40)log.length=40;
+    this.commit(); this.combatRender();
+  },
+  combatDiceModStep(d){
+    const cur=parseInt(document.getElementById("cd_mod")?.value)||this.combatDiceMod||0;
+    this.combatDiceMod=cur+d;
+    const el=document.getElementById("cd_mod"); if(el)el.value=this.combatDiceMod;
+  },
+  combatDiceToggle(){
+    this.combatDiceOpen=!this.combatDiceOpen; this.combatRender();
+  },
+
+  combatDicePanel(){
+    const r=this._combatLastRoll||null;
+    const mod=this.combatDiceMod||0;
+    const open=this.combatDiceOpen;
+    const resHtml=r
+      ?`<span class="cdresult ${r.flag}">${r.total}</span><span class="cdbreak">${esc(r.bd)}</span>`
+      :`<span class="cdresult" style="color:var(--ink-faint)">—</span><span class="cdbreak" style="color:var(--ink-faint)">Tippe zum Würfeln</span>`;
+    const dice=[4,6,8,10,12,20].map(s=>`<button class="cd-die" onclick="App.combatQuickInline(${s})">W${s}</button>`).join("");
+    return `<div class="combat-dice">
+      <div class="combat-dice-head" onclick="App.combatDiceToggle()">
+        <span class="cdlabel">⚄ Würfel</span>
+        ${resHtml}
+        <span class="cdtoggle ${open?"open":""}">▼</span>
+      </div>
+      <div class="combat-dice-body ${open?"open":""}">
+        <div class="cd-row">
+          <div class="cd-mod"><span class="label2">Mod</span>
+            <button class="cd-mod-step" onclick="App.combatDiceModStep(-1);event.stopPropagation()">−</button>
+            <input class="cd-mod-in" id="cd_mod" type="number" value="${mod}" onclick="event.stopPropagation()">
+            <button class="cd-mod-step" onclick="App.combatDiceModStep(1);event.stopPropagation()">+</button>
+          </div>
+          <button class="cd-adv" onclick="App.combatRollInline('normal')">Normal</button>
+          <button class="cd-adv up" onclick="App.combatRollInline('adv')">Vorteil</button>
+          <button class="cd-adv down" onclick="App.combatRollInline('dis')">Nachteil</button>
+        </div>
+        <div class="cd-row">${dice}</div>
+      </div>
+    </div>`;
+  },
+
   combatRender(){
     const cb=this.combat();
     document.getElementById("sectionTitle").textContent="Kampf";
@@ -1281,7 +1374,7 @@ const App = {
       <button class="btn danger" onclick="App.combatEnd()">Beenden</button>
     </div>`;
     const list=cb.list.map(f=>this.fighterHtml(f,f.cid===cb.turnCid)).join("");
-    c.innerHTML=bar+`<div class="turn-list">${list}</div>`;
+    c.innerHTML=bar+this.combatDicePanel()+`<div class="turn-list">${list}</div>`;
   },
 
   fighterHtml(f,current){
