@@ -256,33 +256,33 @@
 
   /* KAMPF-WÜRFELPANEL */
   .combat-dice{background:linear-gradient(180deg,var(--panel-2),var(--panel));border:1px solid var(--line);
-    border-radius:12px;padding:14px 16px;margin-bottom:16px}
-  .combat-dice-head{display:flex;align-items:center;gap:12px;cursor:pointer;user-select:none}
-  .combat-dice-head .cdlabel{font-family:'Cinzel',serif;font-size:13px;letter-spacing:.06em;text-transform:uppercase;
+    border-radius:12px;padding:18px 20px;margin-bottom:16px}
+  .combat-dice-head{display:flex;align-items:center;gap:14px;cursor:pointer;user-select:none}
+  .combat-dice-head .cdlabel{font-family:'Cinzel',serif;font-size:15px;letter-spacing:.06em;text-transform:uppercase;
     color:var(--ink-faint);flex:1}
-  .combat-dice-head .cdresult{font-family:'Cinzel',serif;font-size:22px;color:var(--gold-bright);min-width:36px;text-align:right}
+  .combat-dice-head .cdresult{font-family:'Cinzel',serif;font-size:32px;color:var(--gold-bright);min-width:46px;text-align:right}
   .combat-dice-head .cdresult.crit{color:#a6c87a}
   .combat-dice-head .cdresult.fumble{color:#e08980}
-  .combat-dice-head .cdbreak{font-size:13px;color:var(--ink-dim);flex:2;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
-  .combat-dice-head .cdtoggle{color:var(--ink-faint);font-size:14px;transition:transform .2s;flex-shrink:0}
+  .combat-dice-head .cdbreak{font-size:15px;color:var(--ink-dim);flex:2;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+  .combat-dice-head .cdtoggle{color:var(--ink-faint);font-size:16px;transition:transform .2s;flex-shrink:0}
   .combat-dice-head .cdtoggle.open{transform:rotate(180deg)}
-  .combat-dice-body{margin-top:14px;display:none;border-top:1px solid var(--line);padding-top:14px}
+  .combat-dice-body{margin-top:16px;display:none;border-top:1px solid var(--line);padding-top:16px}
   .combat-dice-body.open{display:block}
-  .cd-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px}
-  .cd-die{width:46px;height:46px;border-radius:10px;border:1px solid var(--line);background:var(--bg-2);color:var(--ink);
-    font-family:'Cinzel',serif;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.13s}
+  .cd-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+  .cd-die{width:58px;height:58px;border-radius:12px;border:1px solid var(--line);background:var(--bg-2);color:var(--ink);
+    font-family:'Cinzel',serif;font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.13s}
   .cd-die:hover{border-color:var(--gold);color:var(--gold-bright);transform:translateY(-2px)}
   .cd-die:active{transform:translateY(0)}
-  .cd-adv{font-family:'Cinzel',serif;font-size:13px;letter-spacing:.02em;padding:9px 12px;border-radius:8px;
+  .cd-adv{font-family:'Cinzel',serif;font-size:15px;letter-spacing:.02em;padding:12px 16px;border-radius:10px;
     cursor:pointer;border:1px solid var(--line);background:var(--bg-2);color:var(--ink);transition:.13s;white-space:nowrap}
   .cd-adv:hover{border-color:var(--gold);color:var(--gold-bright)}
   .cd-adv.up:hover{border-color:var(--green);color:#a6c87a}
   .cd-adv.down:hover{border-color:var(--rust);color:#d79468}
-  .cd-mod{display:flex;align-items:center;gap:5px}
-  .cd-mod .label2{font-size:12px}
-  .cd-mod-step{width:28px;height:28px;border-radius:6px;border:1px solid var(--line);background:var(--bg-2);color:var(--ink-dim);font-size:16px;cursor:pointer}
+  .cd-mod{display:flex;align-items:center;gap:7px}
+  .cd-mod .label2{font-size:14px}
+  .cd-mod-step{width:34px;height:34px;border-radius:8px;border:1px solid var(--line);background:var(--bg-2);color:var(--ink-dim);font-size:20px;cursor:pointer}
   .cd-mod-step:hover{border-color:var(--ink-faint);color:var(--ink)}
-  .cd-mod-in{width:46px;text-align:center;font-family:'Cinzel',serif;font-size:16px;padding:5px 4px}
+  .cd-mod-in{width:54px;text-align:center;font-family:'Cinzel',serif;font-size:19px;padding:6px 4px}
 
   /* INITIATIVE-TRACKER */
   .combat-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:22px;
