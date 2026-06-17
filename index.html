@@ -2007,6 +2007,12 @@ const App = {
 ${seitenHinweis}
 Antworte NUR mit einem JSON-Objekt. Kein Markdown, keine Erklärungen, keine Codeblöcke.
 
+KRITISCHE REGEL — KEIN ERFINDEN:
+- Trage NUR Werte ein, die du eindeutig auf der Karte lesen kannst.
+- Wenn ein Feld unklar, verdeckt oder nicht vorhanden ist: leerer String "" — NIEMALS raten oder aus allgemeinem Regelwissen ergänzen.
+- Aktionen, Fähigkeiten, Werte: exakt vom Kartentext abschreiben, nicht umformulieren oder aus dem Gedächtnis ergänzen.
+- Lieber ein Feld leer lassen als etwas Falsches eintragen.
+
 Fülle genau dieses JSON-Schema aus:
 ${typPrompts[typ]}
 
@@ -2024,8 +2030,8 @@ Antworte NUR mit dem JSON-Objekt.`;
         method:"POST",
         headers:{"Content-Type":"application/json","x-api-key":apiKey,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},
         body:JSON.stringify({
-          model:"claude-haiku-4-5-20251001",
-          max_tokens:1200,
+          model:"claude-sonnet-4-6",
+          max_tokens:1500,
           messages:[{role:"user",content:contentParts}]
         })
       });
